@@ -32,7 +32,7 @@
         /* Subtitle Styling */
         .subtitle {
             font-size: 1.1rem;
-            color: #888888; /* Muted grey so it doesn't overpower the main title */
+            color: #888888;
             margin-bottom: 2.5rem;
             letter-spacing: 0.05em;
             text-transform: uppercase;
@@ -86,38 +86,34 @@
     </div>
 
     <script>
-        // Configuration Parameters
+        // --- CONFIGURATION PARAMETERS ---
         const START_MEMBERS = 14204;
         const TARGET_MEMBERS = 3475609;
         const DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
         
-        // Calculate the rate of joining per millisecond to reach the target exactly on time
-        const RAPID_RATE = (TARGET_MEMBERS - START_MEMBERS) / DURATION_MS; 
-        
-        // The slower rate after 24 hours (e.g., roughly 1 member every 2 seconds)
-        const SLOW_RATE = 0.0005; 
+        // This is the single, universal anchor time (Set to June 7, 2026, 3:48 PM IST)
+        // No matter who opens the page or when, math is calculated from this exact second.
+        const GLOBAL_START_TIME = new Date('2026-06-07T15:48:00+05:30').getTime();
 
-        // Check local storage for an existing start time. If none exists, set it to right now.
-        let startTime = localStorage.getItem('lootDeploymentTime');
-        if (!startTime) {
-            startTime = Date.now();
-            localStorage.setItem('lootDeploymentTime', startTime);
-        } else {
-            // Convert the stored string back into a number
-            startTime = parseInt(startTime, 10);
-        }
+        // Calculate rates
+        const RAPID_RATE = (TARGET_MEMBERS - START_MEMBERS) / DURATION_MS; 
+        const SLOW_RATE = 0.0005; // Roughly 1 member every 2 seconds after 24 hours
 
         const countElement = document.getElementById('memberCount');
 
         function calculateCurrentMembers() {
+            // Get the current universal time in milliseconds
             const now = Date.now();
-            const elapsed = now - startTime;
+            let elapsed = now - GLOBAL_START_TIME;
+
+            // Failsafe: If a user's local device clock is somehow set to the past, default to the start number
+            if (elapsed < 0) elapsed = 0;
 
             if (elapsed < DURATION_MS) {
-                // We are still within the first 24 hours
+                // Within the first 24 hours
                 return Math.floor(START_MEMBERS + (elapsed * RAPID_RATE));
             } else {
-                // 24 hours have passed. Add the slow rate to the target number.
+                // After 24 hours, slow the growth down
                 const timeAfterTarget = elapsed - DURATION_MS;
                 return Math.floor(TARGET_MEMBERS + (timeAfterTarget * SLOW_RATE));
             }
@@ -126,16 +122,15 @@
         function updateTicker() {
             const currentMembers = calculateCurrentMembers();
             
-            // Format with commas for readability and update the DOM
+            // Format with commas and update the screen
             countElement.innerText = currentMembers.toLocaleString();
 
-            // Randomize the visual update interval to simulate realistic server polling
-            // Updates every 1.5 to 3 seconds for a more natural, batch-loading feel
+            // Refresh the screen every 1.5 to 3 seconds for a natural server-polling feel
             const nextUpdate = Math.floor(Math.random() * 1500) + 1500;
             setTimeout(updateTicker, nextUpdate);
         }
 
-        // Initialize the sequence
+        // Boot up the sequence instantly
         updateTicker();
     </script>
 
