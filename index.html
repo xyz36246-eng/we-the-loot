@@ -24,8 +24,19 @@
             font-size: 4rem;
             letter-spacing: -0.05em;
             text-transform: uppercase;
-            margin-bottom: 2rem;
+            margin-bottom: 0.5rem;
             font-weight: 800;
+            text-align: center;
+        }
+
+        /* Subtitle Styling */
+        .subtitle {
+            font-size: 1.1rem;
+            color: #888888; /* Muted grey so it doesn't overpower the main title */
+            margin-bottom: 2.5rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            text-align: center;
         }
 
         /* Green Ticker Container */
@@ -67,6 +78,8 @@
 <body>
 
     <h1>We The Loot</h1>
+    <!-- Replace the text below with your desired subtitle -->
+    <div class="subtitle">by [Insert Name/Title Here]</div>
     
     <div class="ticker-container">
         <div class="status-dot"></div>
@@ -117,9 +130,9 @@
             // Format with commas for readability and update the DOM
             countElement.innerText = currentMembers.toLocaleString();
 
-            // Randomize the visual update interval slightly (between 100ms and 400ms) 
-            // so the ticking looks organic rather than perfectly robotic.
-            const nextUpdate = Math.floor(Math.random() * 300) + 100;
+            // Randomize the visual update interval to simulate realistic server polling
+            // Updates every 1.5 to 3 seconds for a more natural, batch-loading feel
+            const nextUpdate = Math.floor(Math.random() * 1500) + 1500;
             setTimeout(updateTicker, nextUpdate);
         }
 
