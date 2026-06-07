@@ -74,30 +74,57 @@
     </div>
 
     <script>
-        // Simulation logic for live member growth
-        let currentMembers = 14204; // Baseline starting number
+        // Configuration Parameters
+        const START_MEMBERS = 14204;
+        const TARGET_MEMBERS = 3475609;
+        const DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+        
+        // Calculate the rate of joining per millisecond to reach the target exactly on time
+        const RAPID_RATE = (TARGET_MEMBERS - START_MEMBERS) / DURATION_MS; 
+        
+        // The slower rate after 24 hours (e.g., roughly 1 member every 2 seconds)
+        const SLOW_RATE = 0.0005; 
+
+        // Check local storage for an existing start time. If none exists, set it to right now.
+        let startTime = localStorage.getItem('lootDeploymentTime');
+        if (!startTime) {
+            startTime = Date.now();
+            localStorage.setItem('lootDeploymentTime', startTime);
+        } else {
+            // Convert the stored string back into a number
+            startTime = parseInt(startTime, 10);
+        }
+
         const countElement = document.getElementById('memberCount');
 
-        function updateTicker() {
-            // Adds realistic pacing; members don't join at perfectly even intervals
-            const someoneJoined = Math.random() > 0.2; 
-            
-            if (someoneJoined) {
-                // Batch joining: 1 to 4 members at a time
-                const newMembers = Math.floor(Math.random() * 4) + 1;
-                currentMembers += newMembers;
-                
-                // Format with commas for readability
-                countElement.innerText = currentMembers.toLocaleString();
-            }
+        function calculateCurrentMembers() {
+            const now = Date.now();
+            const elapsed = now - startTime;
 
-            // Randomize the next update between 1.5 and 3.5 seconds
-            const nextUpdate = Math.floor(Math.random() * 2000) + 1500;
+            if (elapsed < DURATION_MS) {
+                // We are still within the first 24 hours
+                return Math.floor(START_MEMBERS + (elapsed * RAPID_RATE));
+            } else {
+                // 24 hours have passed. Add the slow rate to the target number.
+                const timeAfterTarget = elapsed - DURATION_MS;
+                return Math.floor(TARGET_MEMBERS + (timeAfterTarget * SLOW_RATE));
+            }
+        }
+
+        function updateTicker() {
+            const currentMembers = calculateCurrentMembers();
+            
+            // Format with commas for readability and update the DOM
+            countElement.innerText = currentMembers.toLocaleString();
+
+            // Randomize the visual update interval slightly (between 100ms and 400ms) 
+            // so the ticking looks organic rather than perfectly robotic.
+            const nextUpdate = Math.floor(Math.random() * 300) + 100;
             setTimeout(updateTicker, nextUpdate);
         }
 
         // Initialize the sequence
-        setTimeout(updateTicker, 1500);
+        updateTicker();
     </script>
 
 </body>
